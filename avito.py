@@ -38,8 +38,8 @@ def gryaz():
         browser.quit()
         # tree = html.fromstring(page.content)
 
-        # if i == 0:
-        #     k = int(tree.xpath('//span[@class="breadcrumbs-link-count js-breadcrumbs-link-count"]/text()')[0].replace(" ",""))
+        if i == 0:
+            k = int(tree.xpath('//span[@class="breadcrumbs-link-count js-breadcrumbs-link-count"]/text()')[0].replace(" ",""))
         flats = tree.xpath('//div[contains(@class,"item item_table clearfix js-catalog-item-enum")]')
         print len(flats),pagecount
         update_row = "update testdb.APPARTEMENTS set price_RUB = %s,price_RUB_meter = %s,price_USD = %s,price_EUR = %s, current_position = %s, prev_position = %s, date_created = %s, views = %s where id_avito = %s;"
