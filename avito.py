@@ -7,7 +7,6 @@ import requests
 import time
 import json
 import mysql.connector
-import time
 from mysql.connector import errorcode
 from selenium import webdriver
 
@@ -20,7 +19,7 @@ def gryaz():
     # log = codecs.open('ads.csv', 'w', 'utf-16')
     # insrt = codecs.open('insrt.sql', 'w', 'utf-16')
     i = 0
-    k =1480
+    k =10
     pagecount = 1
     query = "select id,id_avito,address,description,price_rub,price_rub_meter,price_usd,price_eur,link,upload_date,agency,current_position,prev_position from testdb.APPARTEMENTS"
     cursor = cnx.cursor(buffered=True)
@@ -32,10 +31,11 @@ def gryaz():
         # page = requests.get('https://www.avito.ru/kolomna/kvartiry/prodam?p='+str(pagecount),headers = headers,verify=False,timeout = 2)
         url = 'https://www.avito.ru/kolomna/kvartiry/prodam?p='+str(pagecount)
         pagecount = pagecount + 1
-        browser = webdriver.PhantomJS()
+        browser = webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true', '--ssl-protocol=TLSv1'])
         browser.get(url)
         tree = html.fromstring(browser.page_source)
-        browser.quit()
+        print browser.page_source
+        # browser.quit()
         # tree = html.fromstring(page.content)
 
         if i == 0:
@@ -62,17 +62,17 @@ def gryaz():
 
             views = 0
             date_created = ''
-
-            try:
-                page_stat = requests.get('https://www.avito.ru/items/stat/%s'%id[1:],headers = headers,verify=False)
-                tree_stat = html.fromstring(page_stat.content)
-                date_str = tree_stat.xpath('//div[@class="item-stats__date"]/strong/text()')
-                v = tree_stat.xpath('//div[@class="item-stats-legend"]/strong/text()')
-                views = v[0].replace(' ','')
-                date_string = rus_date_to_eng(date_str[0].encode('latin1').decode('utf-8'))
-                date_created = datetime.strptime(date_string,'%d %B %Y')
-            except Exception as e:
-                print e, "exception in date"
+            #
+            # try:
+            #     page_stat = requests.get('https://www.avito.ru/items/stat/%s'%id[1:],headers = headers,verify=False)
+            #     tree_stat = html.fromstring(page_stat.content)
+            #     date_str = tree_stat.xpath('//div[@class="item-stats__date"]/strong/text()')
+            #     v = tree_stat.xpath('//div[@class="item-stats-legend"]/strong/text()')
+            #     views = v[0].replace(' ','')
+            #     date_string = rus_date_to_eng(date_str[0].encode('latin1').decode('utf-8'))
+            #     date_created = datetime.strptime(date_string,'%d %B %Y')
+            # except Exception as e:
+            #     print e, "exception in date"
 
             # log.write("\'%s\'\t%s\t%s\t%s\t%s\t\'%s\'\t\'%s\'\t\'https://www.avito.ru%s\'\t\'%s\'\t%s\n"%(id,priceRUB,priceMRUB,priceUSD,priceEUR,address,description,link,vendor,i))
 
