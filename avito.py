@@ -34,14 +34,12 @@ def gryaz():
         browser = webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true', '--ssl-protocol=TLSv1'])
         browser.get(url)
         tree = html.fromstring(browser.page_source)
-        print browser.page_source
-        # browser.quit()
+        browser.quit()
         # tree = html.fromstring(page.content)
 
         if i == 0:
             k = int(tree.xpath('//span[@class="breadcrumbs-link-count js-breadcrumbs-link-count"]/text()')[0].replace(" ",""))
         flats = tree.xpath('//div[contains(@class,"item item_table clearfix js-catalog-item-enum")]')
-        print len(flats),pagecount
         update_row = "update testdb.APPARTEMENTS set price_RUB = %s,price_RUB_meter = %s,price_USD = %s,price_EUR = %s, current_position = %s, prev_position = %s, date_created = %s, views = %s where id_avito = %s;"
         insert_row = "insert into testdb.APPARTEMENTS (id_avito,address,price_RUB,price_RUB_meter,price_USD,price_EUR,description,link,agency,current_position,date_created,views) values (%s, %s, %s, %s, %s, %s, %s ,%s ,%s, %s,%s, %s);"
         for r in flats:
