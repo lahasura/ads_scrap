@@ -34,7 +34,7 @@ def gryaz():
     k =10
 
     pagecount = 1
-    query = "select id,id_avito,address,description,price_rub,price_rub_meter,price_usd,price_eur,link,upload_date,agency,current_position,prev_position from testdb.APPARTEMENTS"
+    query = "select id_avito from testdb.APPARTEMENTS"
     cursor = cnx.cursor(buffered=True)
     cursor.execute(query)
     allrows = cursor.fetchall()
@@ -49,8 +49,6 @@ def gryaz():
         if i == 0:
             k = int(browser.find_element_by_xpath('//span[@class="breadcrumbs-link-count js-breadcrumbs-link-count"]').text.replace(" ",""))
         flats = browser.find_elements_by_xpath('//div[contains(@class,"item item_table clearfix js-catalog-item-enum")]')
-        update_row = "update testdb.APPARTEMENTS set price_RUB = %s,price_RUB_meter = %s,price_USD = %s,price_EUR = %s, current_position = %s, prev_position = %s, date_created = %s, views = %s where id_avito = %s;"
-        insert_row = "insert into testdb.APPARTEMENTS (id_avito,address,price_RUB,price_RUB_meter,price_USD,price_EUR,description,link,agency,current_position,date_created,views) values (%s, %s, %s, %s, %s, %s, %s ,%s ,%s, %s,%s, %s);"
         insert_flat = "insert into testdb.APPARTEMENTS (id_avito,address,description,link,agency,date_created) values (%s, %s, %s, %s, %s, %s);"
         insert_price = "insert into testdb.prices (id_avito,price_RUB,price_RUB_meter,price_USD,price_EUR,position,views) values (%s, %s, %s, %s, %s, %s, %s);"
         prices = [x.get_attribute('data-prices') for x in browser.find_elements_by_xpath('.//div[contains(@class,"popup-prices")]')]
@@ -96,8 +94,11 @@ def gryaz():
             counter = 0
             prev_pos = 0
             for row in allrows:
-                if unicode(row[1]) == unicode(id):
-                    cursor_for_ins_flat.execute(insert_flat,(id,address,description,link,vendor,date_created))
+                if unicode(row[0]) == unicode(id):
+                    upd_check = True
+                    break
+            if not upd_check:
+                cursor_for_ins_flat.execute(insert_flat,(id,address,description,link,vendor,date_created))
 
             cursor_for_ins_price.execute(insert_price,(id,priceRUB,priceMRUB,priceUSD,priceEUR,i,views))
             cnx.commit()
