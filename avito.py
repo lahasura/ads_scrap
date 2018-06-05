@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from lxml import html
 from datetime import datetime
-import requests
 import time
 import json
 import mysql.connector
@@ -40,8 +38,8 @@ def gryaz():
     cursor = cnx.cursor(buffered=True)
     cursor.execute(query)
     allrows = cursor.fetchall()
-    cursor_for_upd = cnx.cursor()
-    cursor_for_ins = cnx.cursor()
+    cursor_for_ins_flat = cnx.cursor()
+    cursor_for_ins_price = cnx.cursor()
 
     while  i < k:
         url = 'https://www.avito.ru/kolomna/kvartiry/prodam?p=' + str(pagecount)
@@ -53,6 +51,8 @@ def gryaz():
         flats = browser.find_elements_by_xpath('//div[contains(@class,"item item_table clearfix js-catalog-item-enum")]')
         update_row = "update testdb.APPARTEMENTS set price_RUB = %s,price_RUB_meter = %s,price_USD = %s,price_EUR = %s, current_position = %s, prev_position = %s, date_created = %s, views = %s where id_avito = %s;"
         insert_row = "insert into testdb.APPARTEMENTS (id_avito,address,price_RUB,price_RUB_meter,price_USD,price_EUR,description,link,agency,current_position,date_created,views) values (%s, %s, %s, %s, %s, %s, %s ,%s ,%s, %s,%s, %s);"
+        insert_flat = "insert into testdb.APPARTEMENTS (id_avito,address,description,link,agency,date_created) values (%s, %s, %s, %s, %s, %s);"
+        insert_price = "insert into testdb.prices (id_avito,price_RUB,price_RUB_meter,price_USD,price_EUR,position,views) values (%s, %s, %s, %s, %s, %s, %s);"
         prices = [x.get_attribute('data-prices') for x in browser.find_elements_by_xpath('.//div[contains(@class,"popup-prices")]')]
         addresses = [x.text.strip() for x in browser.find_elements_by_xpath('.//p[@class="address"]')]
         descriptions = [x.text.strip() for x in browser.find_elements_by_xpath('.//a[@class="item-description-title-link"]')]
@@ -78,7 +78,7 @@ def gryaz():
 
             try:
                 browser.get('https://www.avito.ru/items/stat/%s'%id[1:])
-                driver.implicitly_wait(3)
+                time.sleep(3)
                 date_str = browser.find_element_by_xpath('//div[@class="item-stats__date"]/strong').text
                 views = browser.find_element_by_xpath('//div[@class="item-stats-legend"]/strong').text.replace(' ','')
                 # date_string = rus_date_to_eng(date_str.encode('latin1').decode('utf-8'))
@@ -97,21 +97,16 @@ def gryaz():
             prev_pos = 0
             for row in allrows:
                 if unicode(row[1]) == unicode(id):
-                    upd_check = True
-                    prev_pos = row[11]
-            if upd_check:
-                cursor_for_upd.execute(update_row,(priceRUB,priceMRUB,priceUSD,priceEUR,i,prev_pos,date_created,views,id))
-            else:
-                cursor_for_ins.execute(insert_row,(id,address,priceRUB,priceMRUB,priceUSD,priceEUR,description,link,vendor,i,date_created,views))
+                    cursor_for_ins_flat.execute(insert_flat,(id,address,description,link,vendor,date_created))
+
+            cursor_for_ins_price.execute(insert_price,(id,priceRUB,priceMRUB,priceUSD,priceEUR,i,views))
             cnx.commit()
             i=i+1
 
-    cursor_for_upd.close()
-    cursor_for_ins.close()
+    cursor_for_ins_flat.close()
+    cursor_for_ins_price.close()
     cursor.close()
     cnx.close()
-    log.close()
-    browser_stat.quit()
     browser.quit()
 
 def rus_date_to_eng(s):
